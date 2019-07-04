@@ -36,7 +36,7 @@ be used:
    skip downloading the kernel source. It will still copy `config.gz` unless
    `.config` is already present in this directory. `KERNEL_RELEASE` is ignored
    in this case. 
- * `-e ZFS_CONFIG=<all|user|kernel>` - Control what ZFS binaries to build,
+ * `-e ZFS_CONFIG=all|user|kernel` - Control what ZFS binaries to build,
    defaults to `all`. If `user` is specified, then the kernel build steps are
    skipped.
 
