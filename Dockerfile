@@ -5,6 +5,7 @@
 FROM ubuntu:bionic
 
 ARG KERNEL_RELEASE=
+ARG KERNEL_UNAME=
 ARG ZFS_VERSION=
 
 RUN apt-get update
