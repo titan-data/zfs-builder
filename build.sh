@@ -5,6 +5,9 @@
 
 set -xe
 
+KERNEL_SRC=/src/linux
+KERNEL_OBJ=/src/linux
+
 # Checkout ZFS source
 function get_zfs_source() {
     if [ ! -d /src/zfs ]; then
@@ -15,7 +18,7 @@ function get_zfs_source() {
     fi
 }
 
-# Get linuxkit-specific headers
+# Get linuxkit-specific source
 function get_linuxkit_src() {
     local version=$1
     curl --retry 5 -o /src/linuxkit-$version.tar.gz -L https://github.com/linuxkit/linux/archive/v${version}.tar.gz
@@ -25,7 +28,22 @@ function get_linuxkit_src() {
     rm linuxkit-$version.tar.gz
 }
 
-# Get vanilla headers
+#
+# Get ubuntu-specific modules. With Ubuntu, we can get the pre-built modules and
+# headers for a given kernel release, so that we don't need to actually build from source.
+#
+function get_ubuntu_kernel() {
+    local kernel_release=$1
+    local kernel_version=$2
+
+    apt-get install -y linux-modules-$kernel_release linux-headers-$kernel_release linux-source-$kernel_version
+    cd /usr/src && tar -xjf linux-source-$kernel_version.tar.bz2
+
+    KERNEL_SRC=/usr/src/linux-source-$kernel_version
+    KERNEL_OBJ=/lib/modules/$kernel_release/build
+}
+
+# Get vanilla kernel source
 function get_vanilla_src() {
     local version=$1
 
@@ -40,18 +58,27 @@ function get_vanilla_src() {
 }
 
 # Get kernel source via distro-specific mechanism, falling back to vanilla kernel.org
-function get_kernel_source() {
-    [ -z $KERNEL_RELEASE ] && KERNEL_RELEASE=$(uname -r)
+function get_kernel() {
+    [ -z "$KERNEL_RELEASE" ] && KERNEL_RELEASE=$(uname -r)
+    [ -z "$KERNEL_UNAME" ] && KERNEL_UNAME=$(uname -a)
     local kernel_version=${KERNEL_RELEASE%%-*}
     local kernel_variant=${KERNEL_RELEASE#*-}
 
     case $kernel_variant in
     linuxkit)
-        get_linuxkit_src $kernel_version $kernel_variant
+        get_linuxkit_src $kernel_version
+        build_kernel
         ;;
     *)
-        get_vanilla_src $kernel_version $kernel_variant
-        ;;
+        case $KERNEL_UNAME in
+        *Ubuntu*)
+            get_ubuntu_kernel $KERNEL_RELEASE $kernel_version
+            ;;
+        *)
+            get_vanilla_src $kernel_version
+            build_kernel
+            ;;
+        esac
     esac
 }
 
@@ -81,8 +108,8 @@ function build_zfs() {
     ./configure \
         --prefix=/ \
         --libdir=/lib \
-        --with-linux=/src/linux \
-        --with-linux-obj=/src/linux \
+        --with-linux=$KERNEL_SRC \
+        --with-linux-obj=$KERNEL_OBJ \
         --with-config=${ZFS_CONFIG:-all}
     make -j8
     make install DESTDIR=/build
@@ -90,7 +117,6 @@ function build_zfs() {
 
 get_zfs_source
 if [ "$ZFS_CONFIG" != "user" ]; then
-    get_kernel_source
-    build_kernel
+    get_kernel
 fi
 build_zfs
