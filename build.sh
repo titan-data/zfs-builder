@@ -19,13 +19,28 @@ function get_zfs_source() {
 }
 
 # Get linuxkit-specific source
-function get_linuxkit_src() {
-    local version=$1
-    curl --retry 5 -o /src/linuxkit-$version.tar.gz -L https://github.com/linuxkit/linux/archive/v${version}.tar.gz
+function get_linuxkit_kernel() {
+    local kernel_version=$1
+    local kernel_release=$2
+    local container_id=$(docker run -d linuxkit/kernel:$kernel_version /bin/true 2>/dev/null || /bin/true)
+    if [ -z $container_id ]; then
+        echo "failed to launch linuxkit/kernel:$kernel_version container"
+        exit 1
+    fi
+    cd /
+    docker cp $container_id:kernel-dev.tar .
+    docker cp $container_id:kernel.tar .
+    tar xf kernel-dev.tar
+    tar xf kernel.tar
+
     cd /src
-    tar xf linuxkit-$version.tar.gz
-    mv linux-$version linux
-    rm linuxkit-$version.tar.gz
+    docker cp $container_id:linux.tar.xz .
+    tar xf linux.tar.xz
+
+    docker rm $container_id
+
+    KERNEL_SRC=/src/linux
+    KERNEL_OBJ=/lib/modules/$kernel_release/build
 }
 
 #
@@ -33,8 +48,8 @@ function get_linuxkit_src() {
 # headers for a given kernel release, so that we don't need to actually build from source.
 #
 function get_ubuntu_kernel() {
-    local kernel_release=$1
-    local kernel_version=$2
+    local kernel_version=$1
+    local kernel_release=$2
 
     apt-get install -y linux-modules-$kernel_release linux-headers-$kernel_release linux-source-$kernel_version
     cd /usr/src && tar -xjf linux-source-$kernel_version.tar.bz2
@@ -66,13 +81,12 @@ function get_kernel() {
 
     case $kernel_variant in
     linuxkit)
-        get_linuxkit_src $kernel_version
-        build_kernel
+        get_linuxkit_kernel $kernel_version $KERNEL_RELEASE
         ;;
     *)
         case $KERNEL_UNAME in
         *Ubuntu*)
-            get_ubuntu_kernel $KERNEL_RELEASE $kernel_version
+            get_ubuntu_kernel $kernel_version $KERNEL_RELEASE
             ;;
         *)
             get_vanilla_src $kernel_version
