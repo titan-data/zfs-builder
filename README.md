@@ -4,7 +4,11 @@ This image is designed to build ZFS on Linux for any kernel, even those that
 are different from the one running on the host system. To build the latest ZFS
 for the currently running system, run:
 
-    $ docker run -v /:/build delphix/zfs-builder:latest
+    $ docker run -v /:/build -v /var/run/docker.sock:/var/run/docker.sock delphix/zfs-builder:latest
+
+The `/var/run/docker.sock` mount is currently only required for linuxkit builds,
+as the canonical source for the linuxkit kernel is in docker images, which require
+docker privileges to run.
 
 To configure the container to buld for a kernel other than the running system,
 the following configuration options are available:
@@ -53,7 +57,7 @@ has been merged and no longer needs to be built separately.
 
 The following distro-specific source mechanisms have been implemented:
 
-  * Linuxkit - Pulls source from `github.com/linuxkit/linux/archive/*`
+  * Linuxkit - Pulls source from the `linuxkit/kernel` docker image
   * Ubuntu - Pull kernel headers, modules, and source via `apt`j
 
 In the event that the distro-specific mechanism cannot be determined, it will
