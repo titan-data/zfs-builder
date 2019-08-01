@@ -57,8 +57,8 @@ has been merged and no longer needs to be built separately.
 
 The following distro-specific source mechanisms have been implemented:
 
-  * Linuxkit - Pulls source from the `linuxkit/kernel` docker image
-  * Ubuntu - Pull kernel headers, modules, and source via `apt`j
+  * Linuxkit - Pulls pre-built kernel and source from the `linuxkit/kernel` docker image
+  * Ubuntu - Pull pre-built kernel and source via `apt`
 
 In the event that the distro-specific mechanism cannot be determined, it will
 attempt to use vanilla sources from `kernel.org`, but it may or may not work
