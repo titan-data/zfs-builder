@@ -51,6 +51,7 @@ function get_ubuntu_kernel() {
     local kernel_version=$1
     local kernel_release=$2
 
+    apt-get update
     apt-get install -y linux-modules-$kernel_release linux-headers-$kernel_release linux-source-$kernel_version
     cd /usr/src && tar -xjf linux-source-$kernel_version.tar.bz2
 
