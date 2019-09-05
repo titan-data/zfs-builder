@@ -43,6 +43,6 @@ RUN apt-get -y install docker-ce
 RUN mkdir /src
 RUN mkdir /build
 
-COPY build.sh /
+COPY src/* /
 
 CMD /build.sh
