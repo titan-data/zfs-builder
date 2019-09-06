@@ -4,11 +4,14 @@ This image is designed to build ZFS on Linux for any kernel, even those that
 are different from the one running on the host system. To build the latest ZFS
 for the currently running system, run:
 
-    $ docker run -v /:/build -v /var/run/docker.sock:/var/run/docker.sock delphix/zfs-builder:latest
+    $ docker run -v /:/build delphix/zfs-builder:latest
 
-The `/var/run/docker.sock` mount is currently only required for linuxkit builds,
-as the canonical source for the linuxkit kernel is in docker images, which require
-docker privileges to run.
+If you are running CentOS, and are not providing a `centos-release` config file,
+you will need to launch the container in privileged mode in order to access the
+host filesystem, add `--privileged --pid=host`.
+
+If you are performing a LinuxKit or CentOS build, you will need to provide
+access to launch docker containers, add `-v /var/run/docker.sock:/var/run/docker.sock`.
 
 To configure the container to buld for a kernel other than the running system,
 the following configuration options are available:
@@ -17,22 +20,40 @@ the following configuration options are available:
    commit hash in the `zfsonlinux/zfs` github repository. Defaults to the
    latest tag.
  * `-e KERNEL_RELEASE=4.9.125-linuxkit` - Version of the kernel interfaces to use,
-   from `uname -r`. If the variant (e.g. "linuxkit") is known, then we will pull
-   kernel headers via the distro-specific mechanisms. Otherwise, we will try to
-   use the version published on `kernel.org`, though it's possible that the system
-   is running with unknown patches to those sources. Defaults to `uname -r`. If
-   you are building for a distro for the first time, you might want to submit
-   a pull request to grab the appropriate kernel source.
- * `-e KERNEL_UNAME=...` - Complete `uname -a` output identifying the kernel. For
-   some distros (e.g. Ubuntu), the variant is much easier to identify from the
-   full uname output, as there's not a constant string in `uname -r` output.
- * `-v path:/config` - Kernel configuration to use for building the kernel.
-   Must contain a single file, `config.gz`. Defaults to `/proc/config.gz`. This is
-   only needed in cases where we need to build the kernel from scratch; if we
-   can get pre-built kernel headers and objects via a distro-specific mechanism,
-   then we won't need this kernel configuration.
+   from `uname -r`.
+ * `-e KERNEL_UNAME=...` - Complete `uname -a` output identifying the kernel.
  * `-v path:/build` - Output where ZFS binaries (kernel modules and userland
    tools) will be placed, using their absolute path (e.g. `/build/sbin/zfs`)
+ * `-v path:/config` - Additional OS-specific content required to build.
+
+## Supported OSes
+
+For building userland ZFS, any OS is supported. For kernel ZFS, the build system
+supports the following operating systems:
+
+  * Ubuntu - Does not require any additional configuration. Tested with bionic,
+             may or may not work for other releases.
+  * LinuxKit - Requires access to the docker socket. Tested with 4.9.125 and
+             later, may or may not work with other releases.
+  * CentOS - Requires access to the docker socket, and either (a) privileged
+             host access or (b) `/config/centos-release` from
+             `/etc/centos-release`. Tested with CentOS 7, may or may not work
+             with other releases.
+  * Vanilla - Requires either (a) `/proc/config.gz` to be present, or
+              `/config/config.gz` to be present with the kernel configuration.
+              Optionally can specify the kernel source with `-v path:/src/linux`,
+              otherwise source will be downloaded from `kernel.org`.
+
+If the system isn't recognized, it will try to download and build the vanilla
+kernel source that matches the given version, but (a) this will take a long
+time and (b) we may or may not have the right patches and modifications in place
+to build the correct version. YMMV, and no guarantees are made that the
+resulting kernel binaries will work.
+
+If you'd like to add support for a new OS, you can look at the different models
+employed by Ubuntu (native download and build within container), LinuxKit
+(download source via container, build locally), and CentOS (download and build
+entirely within container) for different models.
 
 ## Additional configuration
 
@@ -42,27 +63,12 @@ be used:
  * `-v path:/src/zfs` - Specify the ZFS source to use. If this is present, then
    the builder will skip cloning and checking out the ZFS source, and use what's
    here instead. `ZFS_VERSION` is ignored in this case.
- * `-v path:/src/linux` - Like above, if this is present then the builder will
-   skip downloading the kernel source. It will still copy `config.gz` unless
-   `.config` is already present in this directory. `KERNEL_RELEASE` is ignored
-   in this case. 
  * `-e ZFS_CONFIG=all|user|kernel` - Control what ZFS binaries to build,
    defaults to `all`. If `user` is specified, then the kernel build steps are
    skipped.
 
 This builder only works with ZFS version 0.8.0 or later, as the spl repository
 has been merged and no longer needs to be built separately.
-
-## Supported distros
-
-The following distro-specific source mechanisms have been implemented:
-
-  * Linuxkit - Pulls pre-built kernel and source from the `linuxkit/kernel` docker image
-  * Ubuntu - Pull pre-built kernel and source via `apt`
-
-In the event that the distro-specific mechanism cannot be determined, it will
-attempt to use vanilla sources from `kernel.org`, but it may or may not work
-depending on what distro-specific patches have been applied.
 
 ## How it works
 
@@ -79,9 +85,8 @@ To accomplish this, the ZFS builder does the following:
     checks out the appropriate tag (unless `/src/zfs` already exists)
  2. Build the kernel, if necessary. First check the kernel release variant and,
     if a known distro, download pre-built kernel headers, objects, and/or source
-    through distro-specific means. Otherwise get the source from `www.kernel.org`.
-    If we need to build the kernel (vs. using a pre-built copy), copy the `config.gz`
-    configuration to `/src/kernel/.config` and build the kernel.
+    through distro-specific means. Otherwise get the source from `www.kernel.org`
+    and build it by hand.
  3. Build `/src/zfs`
  4. Copy the resulting binaries to `/build`
 
