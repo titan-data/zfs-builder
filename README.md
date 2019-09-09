@@ -70,64 +70,18 @@ be used:
 This builder only works with ZFS version 0.8.0 or later, as the spl repository
 has been merged and no longer needs to be built separately.
 
-## How it works
+## Contributing
 
-ZFS, like other kernel modules, has a dependency on the interfaces of the
-running kernel. Normally, this is built against the currently running kernel.
-But this creates challenges for users to always install all the requisite build
-tools and find the requisite kernel source, not to mention cases where you
-might want to build packages for a kernel other than the one you are currently
-running (such as part of an automated process using standard build machines).
+The ZFS builder project follows the Titan community best practices:
 
-To accomplish this, the ZFS builder does the following:
+  * [Contributing](https://github.com/titan-data/.github/blob/master/CONTRIBUTING.md)
+  * [Code of Conduct](https://github.com/titan-data/.github/blob/master/CODE_OF_CONDUCT.md)
+  * [Community Support](https://github.com/titan-data/.github/blob/master/SUPPORT.md)
 
- 1. Clone `https://github.com/zfsonlinux/zfs.git` into `/src/zfs` and
-    checks out the appropriate tag (unless `/src/zfs` already exists)
- 2. Build the kernel, if necessary. First check the kernel release variant and,
-    if a known distro, download pre-built kernel headers, objects, and/or source
-    through distro-specific means. Otherwise get the source from `www.kernel.org`
-    and build it by hand.
- 3. Build `/src/zfs`
- 4. Copy the resulting binaries to `/build`
+It is maintained by the [Titan community maintainers](https://github.com/titan-data/.github/blob/master/MAINTAINERS.md)
 
-## Contribute
-
-1.  Fork the project.
-2.  Make your bug fix or new feature.
-3.  Add tests for your code.
-4.  Send a pull request.
-
-Contributions must be signed as `User Name <user@email.com>`. Make sure to
-[set up Git with user name and email address](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup).
-All development should be done on the `master` branch.
-
-#### Code of Conduct
-
-This project operates under the
-[Delphix Code of Conduct](https://delphix.github.io/code-of-conduct.html). By
-participating in this project you agree to abide by its terms.
-
-#### Contributor Agreement
-
-All contributors are required to sign the Delphix Contributor agreement prior
-to contributing code to an open source repository. This process is handled
-automatically by [cla-assistant](https://cla-assistant.io/). Simply open a pull
-request and a bot will automatically check to see if you have signed the latest
-agreement. If not, you will be prompted to do so as part of the pull request
-process.
-
-
-## Reporting Issues
-
-Issues should be reported [here](https://github.com/delphix/zfs-builder/issues).
-
-## Statement of Support
-
-This software is provided as-is, without warranty of any kind or commercial
-support through Delphix. See the associated license for additional details.
-Questions, issues, feature requests, and contributions should be directed to
-the community as outlined in the
-[Delphix Community Guidelines](https://delphix.github.io/community-guidelines.html).
+For more information on how it works, and how to build and release new versions,
+see the [Development Guidelines](DEVELOPING.md).
 
 ## License
 
