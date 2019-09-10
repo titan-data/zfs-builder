@@ -20,7 +20,7 @@
 #
 function build() {
     local centos_release
-    if [[ -f /config/centos-release ]]
+    if [[ -f /config/centos-release ]]; then
         centos_release=$(cat /config/centos-release)
     else
         centos_release=$(nsenter -t 1 -m cat /etc/centos-release)
