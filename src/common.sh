@@ -1,3 +1,7 @@
+#
+# Copyright The Titan Project Contributors.
+#
+
 # Generate a random string
 function generate_random_string() {
     local length=$1
@@ -27,4 +31,3 @@ function build_zfs() {
     make -j8
     make install DESTDIR=/build
 }
-

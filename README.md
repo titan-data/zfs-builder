@@ -4,7 +4,7 @@ This image is designed to build ZFS on Linux for any kernel, even those that
 are different from the one running on the host system. To build the latest ZFS
 for the currently running system, run:
 
-    $ docker run -v /:/build delphix/zfs-builder:latest
+    $ docker run -v /:/build titandata/zfs-builder:latest
 
 If you are running CentOS, and are not providing a `centos-release` config file,
 you will need to launch the container in privileged mode in order to access the
