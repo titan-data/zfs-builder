@@ -15,8 +15,21 @@
 # If this wasn't enough, CentOS requires a customized version of GCC that is not available
 # in the stock Ubuntu gcc images. So we can't run the actual build from within
 # our container, but instead run the whole build process via centos-build.
-# within the container. This of course presents an additional challenge that
-# while we could run
+# within the container.
+#
+# Finally, CentOS is aggressive about moving older kernel versions to their "vault"
+# repos. Because of this, we allow the "centos-vault" file in the config to specify
+# content that should replace /etc/yum.repos.d/CentOS-Vault.repo, such as:
+#
+#     [C7.6.1810]
+#     name=CentOS-7.6.1810
+#     baseurl=http://vault.centos.org/7.6.1810/updates/$basearch/
+#     gpgcheck=1
+#     gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+#     enabled=1
+#
+# This allows tools that invoke the builder to indicate where exactly to find
+# the centos packages.
 #
 function build() {
     local centos_release
@@ -35,6 +48,11 @@ function build() {
 
     mkdir /docker
     cp /*.sh /docker
+    if [[ -f /config/centos-vault ]]; then
+      cp /config/centos-vault /docker
+    else
+      touch /docker/centos-vault
+    fi
     cat > /docker/Dockerfile <<EOF
 FROM centos:centos$centos_version
 RUN yum install -y gcc git
@@ -43,6 +61,7 @@ RUN yum install -y zlib-devel libuuid-devel libattr-devel libblkid-devel libseli
 RUN yum install -y libacl-devel libaio-devel device-mapper-devel openssl-devel libtirpc-devel elfutils-libelf-devel
 RUN yum install -y epel-release
 COPY *.sh /
+COPY centos-vault /etc/yum.repos.d/CentOS-Vault.repo
 CMD /centos-build.sh
 EOF
     local image_name=zfs-builder-centos:$(generate_random_string 8)
