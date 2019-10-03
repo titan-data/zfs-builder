@@ -37,8 +37,10 @@ supports the following operating systems:
              later, may or may not work with other releases.
   * CentOS - Requires access to the docker socket, and either (a) privileged
              host access or (b) `/config/centos-release` from
-             `/etc/centos-release`. Tested with CentOS 7, may or may not work
-             with other releases.
+             `/etc/centos-release`. You may need to add yum repo configuration
+             in `/config/centos-vault` to access the right CentOS vault to
+             find the appropriate packages, if it's an older kernel. Tested
+             with CentOS 7, may or may not work with other releases.
   * Vanilla - Requires either (a) `/proc/config.gz` to be present, or
               `/config/config.gz` to be present with the kernel configuration.
               Optionally can specify the kernel source with `-v path:/src/linux`,
