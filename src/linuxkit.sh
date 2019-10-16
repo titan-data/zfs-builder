@@ -16,12 +16,12 @@ function get_kernel() {
     cd /
     docker cp $container_name:kernel-dev.tar .
     docker cp $container_name:kernel.tar .
-    tar xf kernel-dev.tar
-    tar xf kernel.tar
+    bsdtar xf kernel-dev.tar
+    bsdtar xf kernel.tar
 
     cd /src
     docker cp $container_name:linux.tar.xz .
-    tar xf linux.tar.xz
+    bsdtar xf linux.tar.xz
 
     docker rm $container_name
 
