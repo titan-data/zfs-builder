@@ -16,12 +16,23 @@ function get_kernel() {
     cd /
     docker cp $container_name:kernel-dev.tar .
     docker cp $container_name:kernel.tar .
-    tar xf kernel-dev.tar
-    tar xf kernel.tar
+    bsdtar xf kernel-dev.tar
+    bsdtar xf kernel.tar
+    rm kernel-dev.tar kernel.tar
 
     cd /src
     docker cp $container_name:linux.tar.xz .
-    tar xf linux.tar.xz
+    bsdtar xf linux.tar.xz
+    rm linux.tar.xz
+
+    #
+    # Some versions of linuxkit apparently leave the built gcc plugins in the
+    # kernel tree, which can then generate errors because it's looking for
+    # symbols or libraries that might not exist on this system. Build works
+    # fine without them, so blow them away if they happen to be there.
+    #
+    rm -f /usr/src/*/scripts/gcc-plugins/*.so
+    rm -f /usr/src/*/scripts/gcc-plugins/*.o
 
     docker rm $container_name
 
