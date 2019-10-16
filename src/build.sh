@@ -19,6 +19,9 @@ function get_kernel_type() {
     linuxkit)
         echo linuxkit
         ;;
+    microsoft-standard)
+        echo wsl
+        ;;
     *)
         case $KERNEL_UNAME in
         *Ubuntu*)
