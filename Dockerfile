@@ -26,7 +26,14 @@ RUN apt-get install -y                                                       \
 # Linuxkit binaries (such as fixdep) require musl
 RUN apt-get install -y musl
 
-# Linuxkit requires the ability to copy data from docker images
+# Tar can fail sometimes on overlayfs, use bsdtar as a workaround
+RUN apt-get install -y bsdtar
+
+# Add required tools for those distros that require building the kernel from source
+RUN apt-get install -y build-essential libncurses-dev bison flex libssl-dev   \
+    libelf-dev
+
+# Some distros require the ability to copy data from docker images
 RUN apt-get -y install apt-transport-https \
      ca-certificates \
      curl \

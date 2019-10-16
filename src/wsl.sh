@@ -3,17 +3,29 @@
 # Copyright The Titan Project Contributors.
 #
 
+#
+# Build process for the WSL2 (Windows Service for Linux 2) kernel. The kernel is
+# available at:
+#
+# https://github.com/microsoft/WSL2-Linux-Kernel
+#
+# However, there do not appear to be any pre-built binary packages, so we need
+# to fetch the kernel source and build it ourselves. Like the vanilla kernel
+# build process, we need a config.gz file to make sure we're building with the
+# appropriate kernel parameters.
+#
+
 # Get vanilla kernel source
 function get_kernel_src() {
     local version=$KERNEL_VERSION
 
     # Download Kernel source
     if [ ! -d /src/linux ]; then
-        curl --retry 5 -o /src/linux-$version.tar.xz -L https://www.kernel.org/pub/linux/kernel/v${version%%.*}.x/linux-$version.tar.xz
+        curl --retry 5 -o /src/$KERNEL_RELEASE.tar.gz -L https://github.com/microsoft/WSL2-Linux-Kernel/archive/$KERNEL_RELEASE.tar.gz
         cd /src
-        bsdtar xf linux-$version.tar.xz
-        mv linux-$version linux
-        rm linux-$version.tar.xz
+        bsdtar xf $KERNEL_RELEASE.tar.gz
+        mv WSL2-Linux-Kernel-$KERNEL_RELEASE linux
+        rm $KERNEL_RELEASE.tar.gz
     fi
 
     KERNEL_SRC=/src/linux
