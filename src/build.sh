@@ -27,7 +27,7 @@ function get_kernel_type() {
         *Ubuntu*)
             echo ubuntu
             ;;
-        *.el[0-9].*)
+        *.el[0-9]_[0-9].*)
             echo centos
             ;;
         *)
