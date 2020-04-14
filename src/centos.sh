@@ -55,6 +55,8 @@ function build() {
     fi
     cat > /docker/Dockerfile <<EOF
 FROM centos:centos$centos_version
+RUN yum install dnf-plugins-core
+RUN yum config-manager --set-enabled PowerTools
 RUN yum install -y gcc git
 RUN yum install -y autoconf automake libtool make rpm-build ksh
 RUN yum install -y zlib-devel libuuid-devel libattr-devel libblkid-devel libselinux-devel libudev-devel
