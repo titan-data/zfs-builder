@@ -30,6 +30,9 @@ function get_kernel_type() {
         *.el[0-9].*)
             echo centos
             ;;
+        *.el8_[0-9].*)
+	    echo centos8x
+            ;;
         *)
             echo vanilla
             ;;
