@@ -18,7 +18,7 @@ function build() {
 
     cat > /docker/Dockerfile <<EOF
 FROM linuxkit/kernel:$KERNEL_VERSION AS ksrc
-FROM linuxkit/alpine:e2391e0b164c57db9f6c4ae110ee84f766edc430 AS build
+FROM linuxkit/alpine:5fd4e83fea8bd04f21d1611d04c93d6ccaca785a AS build
 RUN apk update
 RUN apk add bash \
     attr-dev \
@@ -44,7 +44,7 @@ EOF
     local image_name=zfs-builder-linuxkit:$(generate_random_string 8)
     cd /docker && docker build -t $image_name .
     local container_name=zfs-builder-$(generate_random_string 8)
-    docker run --name $container_name -e KERNEL_RELEASE=$KERNEL_RELEASE \
+    docker run --name $container_name -e KERNEL_RELEASE=$KERNEL_RELEASE -e ZFS_VERSION=$ZFS_VERSION \
         -e KERNEL_SRC=/src/linux -e KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build $image_name
     docker cp $container_name:/build /
     docker rm $container_name
